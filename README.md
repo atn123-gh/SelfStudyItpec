@@ -6,8 +6,7 @@ Technology Passport) and FE (Fundamental Engineer) exam questions.
 The application provides past exam questions, answer checking, and
 AI-generated explanations to support self-study.
 
-**Live demo:** https://168.144.218.68 (real, publicly trusted HTTPS
-certificate — no domain name needed)
+**Live demo:** https://168.144.218.68 
 
 ### Main Features
 
