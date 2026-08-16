@@ -97,7 +97,7 @@ class Command(BaseCommand):
 
                 self.stdout.write(f"  {question_id}: transcribing question image...")
                 transcript = self._transcribe_question(api_key, model, image_bytes)
-                time.sleep(2)  # be gentle with free-tier rate limits
+                time.sleep(15)  # stay well under the free tier's per-minute rate limit
 
                 self.stdout.write(f"  {question_id}: retrieving textbook context...")
                 context_chunks = index.top_k(transcript, k=3)
