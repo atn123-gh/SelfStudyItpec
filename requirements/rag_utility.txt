@@ -1,0 +1,14 @@
+# Dependencies for the offline `insertsolutions` explanation-generator
+# utility ONLY (itp_project/quiz/management/commands/insertsolutions.py).
+#
+# Deliberately NOT included in base.txt/production.txt - the website
+# never calls an LLM at runtime, so these have no reason to be in the
+# deployed Docker image. Install into the running app container only
+# when you actually want to (re)generate explanations:
+#
+#   docker compose exec app pip install -r requirements/rag_utility.txt
+#   docker compose exec app python manage.py insertsolutions --level FE --folder <name> --limit 5
+
+requests
+scikit-learn
+bleach
