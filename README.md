@@ -54,3 +54,7 @@ website itself never calls an LLM at request time.
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for how to run this project locally or
 deploy it yourself.
+
+### AI Assistance
+
+Parts of this repository have been reviewed, updated, or improved with the help of AI tools, including **Claude Code** and **ChatGPT**.
