@@ -1,0 +1,60 @@
+{% extends "itpecbase.html" %}
+
+{% block content %}
+<!-- ======= Hero Section ======= -->
+<section id="hero" class="d-flex align-items-center">
+  <div class="container position-relative" data-aos="fade-up" data-aos-delay="100">
+    <div class="row ">
+      <div class="col-xl-7 col-lg-9 ">
+        <h1>{{level}}</h1>
+        <h5>AM Test</h5>
+
+      </div>
+    </div>
+
+    <div class="row ">
+      <style>
+        .unavail{
+          pointer-events: none;
+          color:grey;
+        }
+      </style>
+
+      <div class="container-fluid mt-3">
+        <div class="row">
+          <div class="threeTwoOneColumns">
+            <ul class="years">
+              <div class="list-group">
+
+                {% if quizzes %}
+
+                  {% for quiz in quizzes %}
+                    <a href="{% if quiz.availability == 'c' %}{{ quiz.get_absolute_url }}{% endif %}" class="list-group-item list-group-item-action list-group-item-primary {% if quiz.availability != 'c' %}unavail{% endif %}">{{ quiz.exam_date_str }}</a> 
+
+                  {% endfor %}
+
+
+                {% else %}
+                <h5>No quiz. Please contact system administrator. </h3>
+                {% endif %}
+
+
+              </div>
+
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- <div class="row">
+        <div class="col-xs-4 mr-4"> -->
+
+
+  </div>
+</section><!-- End Hero -->
+
+
+
+
+
+{% endblock %}

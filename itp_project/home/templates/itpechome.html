@@ -1,0 +1,63 @@
+{% extends "itpecbase.html" %}
+{% block title %}
+Home
+{% endblock %}
+
+
+{% block content %}
+
+  <!-- ======= Hero Section ======= -->
+  <section id="hero" class="d-flex align-items-center">
+    <div class="container position-relative" data-aos="fade-up" data-aos-delay="100">
+      <div class="row justify-content-center">
+        <div class="col-xl-7 col-lg-9 text-center">
+          <h1>Prepare for your ITPEC Exam</h1>
+          <!-- <h5>ITPEC Exam Practice</h5> -->
+
+        </div>
+      </div>
+        
+      <div class="row gx-5 icon-boxes">
+        <div class="col-md-6 col-lg-6" data-aos="zoom-in" >
+          <div class="icon-box">
+            <div class="icon"><i class="ri-command-line"></i></div>
+            <h3 class="title">Learn</h3>
+            <p class="description">ITPEC study material</p>
+
+            <div>
+              <a href="" class="btn-get-started inactivebtn">IP</a>
+              <a href="" class="btn-get-started inactivebtn">FE</a>
+            </div>
+
+          </div>
+          
+        </div>
+
+        <div class="col-md-6 col-lg-6" data-aos="zoom-in" >
+          <div class="icon-box">
+            <div class="icon"><i class="ri-command-line"></i></div>
+            <h4 class="title">Test</h4>
+            <p class="description">Take past question papers</p>
+            <div>
+              <a href="{% url 'quiz:choose' level='IP' %}" class="btn-get-started scrollto">IP</a>
+              <a href="{% url 'quiz:choose' level='FE' %}" class="btn-get-started scrollto">FE</a>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </section><!-- End Hero -->
+{% endblock %}
+
+
+
+
+
+
+
+
+
+

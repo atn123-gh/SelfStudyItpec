@@ -1,0 +1,236 @@
+{% extends "itpecbase.html" %}
+{{ quizmodel }}
+{% load crispy_forms_tags %}
+{% load custom_tags %}
+{% load static %}
+
+{% block content %}
+<!-- style only used for this quiz.html -->
+<style>
+  #main-container {
+    margin-top: 70px;
+  }
+
+  .sticky-btn {
+    position: fixed;
+    top: 100px; /* Adjust as needed */
+  }
+  .quiznav li {  /*  used by comment out code */
+          background-color: #fff;
+          background-image: none;
+          border: 1px solid #cfcfcf;
+          cursor: pointer;
+          float: left;
+          list-style-type: none;
+          margin: 1px 4px 4px 1px;
+          padding: 1px 0;
+          text-align: center;
+          width: 30px;
+        }
+  .solution-modal {
+       max-width: 63%;
+ }
+
+</style> 
+<!-- Page content-->
+<div class="container" id="main-container">
+
+
+  <form method="post" action="{{qform.helper.form_action}}" class="crispy">
+  <div class="row">
+    <!-- Blog entries-->
+    <div class="col-lg-8">
+      <!-- Featured blog post-->
+      
+        {% csrf_token %}
+ 
+
+        {% for field in qform.visible_fields %}
+        {% if field.widget_type == "radioselect" %}
+              <!-- To del if no use-->
+        <!-- <div class="card mb-4 mt-4" data-question-id="{{ QImgPath|replace_slash }}{{ field.html_name|replace_slash }}"> -->
+        <div class="card mb-4 mt-4" 
+             data-level="{{ level }}"
+             data-folder="{{ qfolder_name }}"
+             data-question-id="{{ field.html_name }}">
+
+
+             <!-- <div class="card mb-4 mt-4" 
+             data-level="{{ qform.level.value }}"
+             data-folder="{{ qform.folder.value }}"
+             data-question-id="{{ field.html_name }}"> -->
+
+          <div class="card-body">
+            <p class="card-text">
+              <img src="https://raw.githubusercontent.com/yt2122/itpec_image/main/IP_FE_QImg_V1/{{ QImgPath }}{{field.html_name}}.png" loading="lazy" 
+                class="img-fluid" alt="{{ field.html_name}}.png">
+            </p>
+
+          </div>
+
+          {% if correct_answers %}
+              {% iscorrect check_results field.html_name as correct_flag %}
+              {% get_ans correct_answers field.html_name as correct_ans %}
+          {% endif  %}
+          
+            <div class="card-header text-end border-5 border-start-5" 
+            {% if correct_answers  %}
+              {% if correct_flag %}
+                style="background-color:#e9fbe9;border-color: #52e052;"
+              {% else %}
+                style="background-color:#f8e9eb;border-color: #dc7781;"
+              {% endif  %}
+            {% endif  %}
+           >
+
+            {% if correct_answers  %}
+              <a href="#" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#solutionModal" onclick="showSolution(this)">See Solution</a>
+              <span class="text-success"> Correct answer: <b>{{ correct_ans }}</b> </span>
+            {% endif  %}
+              &nbsp;&nbsp;&nbsp;&nbsp;
+
+            <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+
+              {% for choice in field.field.choices %}
+              <input type="radio" id="{{ field.auto_id }}_{{ forloop.counter0 }}" name="{{ field.html_name }}"
+                value="{{ choice.0 }}" {% if field.value == choice.0 %}checked{% endif %} class="btn-check" autocomplete="off" 
+                {% if field.field.widget.attrs.disabled %}
+                disabled="disabled"
+            {% endif %}
+            >
+              <label class="btn btn-outline-dark"  for="{{ field.auto_id }}_{{ forloop.counter0 }}">                
+                &nbsp;{{ choice.1 }}&nbsp;</label>
+
+              {% endfor %}
+
+            </div>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          </div>
+        </div>
+        {% endif %}
+
+        {% endfor %}
+        {% for hidden in qform.hidden_fields %}
+        {{ hidden }}
+        {% endfor %}
+
+    </div>
+  
+    <!-- Side widgets-->
+    <div class="col">
+      <div class="sticky-btn d-flex justify-content-center">
+        <input type="submit" class="btn btn-primary" value="Submit Answers">
+    </div>
+      <!-- Search widget-->
+
+      <!-- <div class="card mb-4 mt-4 ">
+        <div class="card-header ">Search</div>
+        <div class="card-body ">
+          <div class="input-group ">
+            <input class="form-control " type="text " placeholder="Enter search term... "
+              aria-label="Enter search term... " aria-describedby="button-search " />
+            <button class="btn btn-primary " id="button-search " type="button ">Go!</button>
+          </div>
+        </div>
+      </div> -->
+      <!-- Categories widget-->
+
+      <!-- <div class="card mb-4 ">
+        
+      </div> -->
+      <!-- <div class="card mb-4 ">
+        <div class="card-header ">Quiz navigation</div>
+        <div class="card-text quiznav">
+          <ol>
+            <li class="">1</li>
+            <li>2</li>
+            <li>3</li>
+            <li>4</li>
+            <li>5</li>
+            <li>6</li>
+            <li>7</li>
+            <li>8</li>
+            <li>9</li>
+            <li>10</li>
+            <li>11</li>
+            <li>12</li>
+            <li>13</li>
+            <li>14</li>
+            <li>15</li>
+            <li>16</li>
+            <li>17</li>
+            <li>18</li>
+            <li>19</li>
+          </ol>
+        </div>
+      </div> -->
+
+      <!-- <div class="card mb-4 ">
+              <div class="card-header ">Quiz navigation</div>
+              <div class="card-body ">
+                  <div class="row ">
+                      <div class="col-sm-6 ">
+                          <ul class="list-unstyled mb-0 ">
+                              <li><a href="#! ">Web Design</a></li>
+                              <li><a href="#! ">HTML</a></li>
+                              <li><a href="#! ">Freebies</a></li>
+                          </ul>
+                      </div>
+                      <div class="col-sm-6 ">
+                          <ul class="list-unstyled mb-0 ">
+                              <li><a href="#! ">JavaScript</a></li>
+                              <li><a href="#! ">CSS</a></li>
+                              <li><a href="#! ">Tutorials</a></li>
+                          </ul>
+                      </div>
+                  </div>
+              </div>
+          </div> -->
+      <!-- Side widget-->
+      <!-- <div class="card mb-4 ">
+              <div class="card-header ">Side Widget</div>
+              <div class="card-body ">You can put anything you want inside of these side widgets. They are easy to
+                  use, and feature the Bootstrap 5 card component!</div>
+          </div> -->
+
+    </div>
+  </div>
+</form>
+</div>
+</div>
+<!-- Footer-->
+<!-- <footer class=" py-5 bg-dark ">
+  <div class="container ">
+    <p class="m-0 text-center text-white ">Copyright &copy; Your Website 2022</p>
+  </div>
+</footer> -->
+<!-- Bootstrap core JS-->
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="solutionModal" tabindex="-1" aria-labelledby="solutionModalLabel" aria-hidden="true">
+  <div class="modal-dialog solution-modal"> 
+    <div class="modal-content">
+      
+      <!-- Updated Header -->
+      <div class="modal-header bg-black" style="color: #5e9ecd;">
+        <h5 class="modal-title" id="solutionModalLabel">Solution</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body" id="solutionModalBody">
+        <!-- Solution content will be dynamically inserted here -->
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+{% endblock %}
+
+

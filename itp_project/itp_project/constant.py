@@ -1,0 +1,5 @@
+IP = "IP"
+FE = "FE"
+
+IP_QA_COUNT=100
+FE_QA_COUNT=80

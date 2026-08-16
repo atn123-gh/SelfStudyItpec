@@ -1,0 +1,53 @@
+{% extends "itpecbase.html" %}
+
+{% block meta %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block title %}
+Feedback
+{% endblock %}
+{% load crispy_forms_tags %} 
+
+
+{% block content %}
+
+  <!-- ======= Hero Section ======= -->
+  <section id="hero" class="d-flex align-items-center">
+    <div class="container position-relative" data-aos="fade-up" data-aos-delay="100">
+      <div class="row justify-content-center">
+        <div class="col-xl-7 col-lg-9 text-left">
+
+          <h3>Feedback Form</h3>
+          <br><br>
+          {% if submitted %}
+              <div class="p-3 mb-2 bg-success text-white">Thank you for your feedback.</div>
+          
+          {% endif %}
+              <form method="post">
+              
+                  {% csrf_token %}
+                  {% crispy form %}
+                
+              </form>
+
+
+          
+        </div>
+      </div>
+        
+      <div class="row gx-5 icon-boxes">
+
+
+      </div>
+    </div>
+  </section><!-- End Hero -->
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
