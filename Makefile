@@ -1,7 +1,7 @@
-.PHONY: up down restart logs build ps restore-mongo shell-db shell-mongo
+.PHONY: up down restart logs build ps restore-mongo shell-db shell-mongo up-https init-https logs-nginx logs-certbot
 
 # Starts the app, Postgres, and MongoDB. nginx/certbot are intentionally
-# excluded — not needed for this project's HTTP-only, no-domain setup.
+# excluded — only needed for the HTTPS deployment (see up-https below).
 up:
 	docker compose up -d app db mongodb
 
@@ -21,6 +21,24 @@ build:
 
 ps:
 	docker compose ps
+
+# HTTPS-via-public-IP deployment. First time on a machine: use
+# `init-https` instead (handles the initial certificate). After that,
+# `up-https` is what you'd use for ordinary restarts.
+up-https:
+	docker compose up -d app db mongodb nginx certbot
+
+# One-time (per machine): bootstraps a real Let's Encrypt IP-address
+# certificate and starts the full HTTPS stack. Requires SERVER_IP and
+# LETSENCRYPT_EMAIL set in .env — see .env.example.
+init-https:
+	./scripts/init-https.sh
+
+logs-nginx:
+	docker compose logs -f nginx
+
+logs-certbot:
+	docker compose logs -f certbot
 
 # One-time (or repeat any time you want to reset back to real data):
 # restores real MongoDB solution content over the dummy placeholder data.

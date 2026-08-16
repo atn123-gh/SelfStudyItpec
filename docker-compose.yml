@@ -8,9 +8,11 @@ services:
       - ./.env:/code/.env
     ports:
       # Host port is configurable per machine via APP_HOST_PORT in .env
-      # (defaults to 8000). Set APP_HOST_PORT=80 for a "no port in the URL"
-      # deployment.
-      - "${APP_HOST_PORT:-8000}:8000"
+      # (defaults to 8000). Bound to localhost only — for an HTTPS
+      # deployment (`make up-https`), nginx is the only service that needs
+      # to be internet-reachable; it reaches this over the internal
+      # Docker network regardless of this binding.
+      - "127.0.0.1:${APP_HOST_PORT:-8000}:8000"
     command: sh -c "/code/entrypoint.sh"
     depends_on:
       - db
@@ -46,30 +48,52 @@ services:
       # needed. Use `docker compose exec mongodb mongosh ...` for shell access.
       - "127.0.0.1:27017:27017"
 
+  # Only used for the HTTPS-via-public-IP deployment (`make up-https`).
+  # Not needed for local dev or a plain-HTTP deployment.
   nginx:
-    image: nginx:1.15-alpine
+    image: nginx:1.27-alpine
     restart: unless-stopped
     volumes:
       - ./staticfiles:/staticfiles
       - ./nginx:/etc/nginx/conf.d
+      - ./nginx/templates:/etc/nginx/templates
       - ./data/certbot/conf:/etc/letsencrypt
       - ./data/certbot/www:/var/www/certbot
+    environment:
+      SERVER_IP: ${SERVER_IP:-}
+      # Restrict envsubst-on-templates to SERVER_IP only, so it doesn't
+      # also mangle nginx's own $host/$remote_addr/etc. variables in the
+      # template (those aren't shell env vars, and default envsubst
+      # behavior would silently blank them out).
+      NGINX_ENVSUBST_FILTER: SERVER_IP
     ports:
-      - "83:80"
+      - "80:80"
       - "443:443"
+    # A custom `command:` bypasses the image's own auto-detection of
+    # "$1 == nginx" that normally triggers /docker-entrypoint.d/ scripts
+    # (including 20-envsubst-on-templates.sh, which renders
+    # nginx/templates/*.template into conf.d) - so it's invoked explicitly
+    # here instead, before the reload loop + nginx itself start.
     command: >
-      /bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'
+      /bin/sh -c '/docker-entrypoint.d/20-envsubst-on-templates.sh && (while :; do sleep 6h & wait $${!}; nginx -s reload; done &) && nginx -g "daemon off;"'
     depends_on:
       - app
 
+  # Only used for the HTTPS-via-public-IP deployment (`make up-https`).
   certbot:
     image: certbot/certbot
     restart: unless-stopped
     volumes:
       - ./data/certbot/conf:/etc/letsencrypt
       - ./data/certbot/www:/var/www/certbot
+    # These are short-lived (~160h/6.7 day) IP-address certificates, not
+    # the usual 90-day domain certs — they need a much tighter renewal
+    # check interval. `certbot renew` only actually renews once within
+    # its renewal window and re-uses the --preferred-profile/--ip-address
+    # flags saved from the original `certonly` call (see
+    # scripts/init-https.sh), so no flags are needed here.
     entrypoint: >
-      /bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'
+      /bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 6h & wait $${!}; done;'
 
 volumes:
   postgres_data:

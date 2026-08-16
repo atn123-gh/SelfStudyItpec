@@ -22,10 +22,10 @@ same `docker-compose.yml` works unmodified in every environment.
    to load real MongoDB solution content from `mongo_data_bk/`, replacing
    the dummy placeholder text the app seeds by default (see "Known quirks"
    below for why this extra step exists).
-4. Open the app:
-   - Local dev: `http://localhost:8000/home/` (or whatever `APP_HOST_PORT`
-     you set in `.env`)
-   - A deployment with `APP_HOST_PORT=80`: `http://<machine-ip>/home/`
+4. Open the app at `http://localhost:8000/home/` (or whatever
+   `APP_HOST_PORT` you set in `.env`). For a public deployment reachable
+   over HTTPS at `https://<your-server-ip>`, see "HTTPS via public IP"
+   below instead of step 4.
 
 ### Everyday commands
 
@@ -40,9 +40,53 @@ same `docker-compose.yml` works unmodified in every environment.
 | `make restore-mongo` | Re-load real MongoDB data (see above) |
 | `make shell-db` | Open a `psql` shell into Postgres |
 | `make shell-mongo` | Open a `mongosh` shell into MongoDB |
+| `make init-https` | One-time: bootstrap the HTTPS deployment (see below) |
+| `make up-https` | Start the full stack including nginx/certbot (after `init-https`) |
+| `make logs-nginx` / `make logs-certbot` | Follow those containers' logs |
 
 No `make`? Run the equivalent `docker compose ...` command shown in the
 `Makefile` — it's a one-line wrapper for each target.
+
+### HTTPS via public IP (no domain)
+
+For a deployment reachable at `https://<your-server-ip>` — a real,
+publicly-trusted certificate, not self-signed — using Let's Encrypt's
+IP-address certificate support (GA since January 2026). No domain name
+needed.
+
+**How it works:** nginx terminates TLS and reverse-proxies to the app
+container (which is otherwise only reachable from `localhost` — see
+`docker-compose.yml`). Certbot obtains the certificate via HTTP-01
+validation (nginx serves the challenge on port 80) using the
+`shortlived` ACME profile — the only profile currently available for
+bare IP addresses. These certificates are valid for **~160 hours (~6.7
+days)**, not the usual 90 days, so a renewal loop (built into the
+`certbot` service, checking every 6h) is essential, not optional.
+
+1. In `.env`, set `SERVER_IP` (your server's public IP) and
+   `LETSENCRYPT_EMAIL` (used only for renewal-failure notices) — see
+   `.env.example`.
+2. `make build` first if you haven't already (builds the app image,
+   starts app/db/mongodb).
+3. `make init-https` — one-time bootstrap: creates a temporary
+   self-signed cert so nginx can start, brings up nginx, requests the
+   real certificate, reloads nginx, and starts the renewal loop. Takes
+   under a minute. Safe to re-run if something fails partway.
+4. Open `https://<SERVER_IP>`.
+
+After the first run, `make up-https` (or just `make up` — nginx/certbot
+keep running once started with `restart: unless-stopped`) is all you
+need for ordinary restarts. Firewall: open 22 (SSH), 80 (HTTP — needed
+for renewal, not just redirects), and 443 (HTTPS); nothing else.
+
+**Why the certificate needs an automated renewal loop, and what happens
+if it lapses:** unlike a normal 90-day certificate where a missed
+renewal check has weeks of slack, a ~160-hour cert lapsing means the
+site starts serving an expired certificate (browsers will show a
+warning, not silently fall back to HTTP) within days of the renewal
+loop stopping. As long as the `certbot` container keeps running
+(`docker compose ps` to check), this is handled automatically — there's
+nothing to do manually.
 
 ### Deploying to a new machine
 
@@ -53,14 +97,19 @@ No `make`? Run the equivalent `docker compose ...` command shown in the
    in particular:
    - `DJANGO_SECRET_KEY`: generate a fresh one (see `.env.example`)
    - `DJANGO_ALLOWED_HOSTS`: add that machine's IP or hostname
-   - `APP_HOST_PORT`: `80` if you want `http://<ip>` with no port number,
-     otherwise leave the default `8000`
    - `POSTGRES_PASSWORD`: choose a real password (the placeholder in
      `.env.example` is not safe to use as-is)
+   - For HTTPS (recommended): also set `SERVER_IP` and `LETSENCRYPT_EMAIL`
+     — see "HTTPS via public IP" above
 4. `make build`, then `make restore-mongo` once.
-5. Open a firewall for SSH (22) and whatever `APP_HOST_PORT` you chose —
-   nothing else needs to be public. MongoDB's port is bound to
-   `127.0.0.1` in `docker-compose.yml`, so it's never exposed regardless.
+5. `make init-https` for HTTPS (see above), or just `make up` for
+   plain HTTP on `APP_HOST_PORT` (bound to localhost only by default —
+   see the comment in `docker-compose.yml` if you specifically want
+   unencrypted HTTP reachable from outside instead of HTTPS).
+6. Open a firewall for SSH (22) and either 80+443 (HTTPS) or your chosen
+   `APP_HOST_PORT` (plain HTTP) — nothing else needs to be public.
+   MongoDB's port is bound to `127.0.0.1` in `docker-compose.yml`, so
+   it's never exposed regardless.
 
 ### Known quirks (so you don't have to rediscover them)
 
@@ -79,11 +128,16 @@ No `make`? Run the equivalent `docker compose ...` command shown in the
   the collections don't already have data. Run `make restore-mongo` after
   bringing the stack up to replace it with the real content from
   `mongo_data_bk/`.
-- `nginx/`, `init-letsencrypt.sh`, and the `certbot` service in
-  `docker-compose.yml` are leftover from the original HTTPS + custom-domain
-  deployment. They're **not used** in the current setup (plain HTTP,
-  IP-only access) — safe to ignore. `make`/`docker compose up` targets only
-  `app db mongodb` and never starts them.
+- `init-letsencrypt.sh` and `nginx/production.conf` are leftover from the
+  *original* HTTPS + custom-domain deployment (a real domain, standard
+  90-day certs) — **not used** now. The current HTTPS setup
+  (`nginx/templates/ip-https.conf.template`, `scripts/init-https.sh`) is
+  a different, IP-address-based approach with short-lived certificates —
+  see "HTTPS via public IP" above. `nginx/localhost.conf` is also unused
+  (a leftover from that original setup) since nginx isn't part of the
+  plain-HTTP local dev flow at all.
+- `make up` / `make build` only start `app db mongodb` — nginx/certbot
+  only start via `make up-https` / `make init-https`.
 
 ---
 

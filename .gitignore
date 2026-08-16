@@ -182,6 +182,9 @@ itp_project/quiz/management/commands/solution_data.csv
 output.json
 itpec_notes.ods
 
+# Let's Encrypt certificates/private keys (created by scripts/init-https.sh)
+data/
+
 # Dead/unused file with a hardcoded placeholder dev password; not
 # referenced by docker-compose.yml or any script
 itp_project/utils/database_data/init.sql
