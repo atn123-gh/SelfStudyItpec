@@ -6,7 +6,8 @@ Technology Passport) and FE (Fundamental Engineer) exam questions.
 The application provides past exam questions, answer checking, and
 AI-generated explanations to support self-study.
 
-**Live demo:** https://168.144.218.68 
+**Live Demo:** https://168.144.218.68  
+**RAG Example:** https://168.144.218.68/quiz/FE_2022_Oct — FE questions with RAG-generated explanations for Questions 1–5.
 
 ### Main Features
 
