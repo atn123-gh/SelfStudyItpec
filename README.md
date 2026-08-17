@@ -7,7 +7,10 @@ The application provides past exam questions, answer checking, and
 AI-generated explanations to support self-study.
 
 **Live Demo:** https://168.144.218.68  
-**RAG Example:** https://168.144.218.68/quiz/FE_2022_Oct — FE questions with RAG-generated explanations for Questions 1–5.
+**RAG / LLM Example :** https://168.144.218.68/quiz/FE_2022_Oct — Questions 1–5 include RAG-based explanations available through "See Solution" after answering.
+
+<img width="362" height="313" alt="image" src="https://github.com/user-attachments/assets/0c49e1cf-cdbf-4d93-b282-ae93527b5935" />
+
 
 ### Main Features
 
